@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session, url_for
 import sqlite3, os
 
 app = Flask(__name__)
 
 DB_NAME = "fund.db"
+app.secret_key = "time123"
 
 # ✅ Step 1: Create DB and tables if missing
 def init_db():
@@ -44,8 +45,28 @@ def members():
     conn.close()
     return render_template("members.html", members=members)
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        if username == "admin" and password == "iadmin123":
+            session["admin"] = True
+            return redirect("/members")
+        else:
+            return "Invalid credentials"
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("admin", None)
+    return redirect("/login")
+
+
 @app.route("/delete_member/<int:member_id>", methods=["POST"])
 def delete_member(member_id):
+    if not session.get("admin"):
+        return "Unauthorized", 403
     conn = get_db_connection()
     conn.execute("DELETE FROM members WHERE id = ?", (member_id,))
     conn.commit()

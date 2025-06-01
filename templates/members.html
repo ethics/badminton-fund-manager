@@ -10,19 +10,23 @@
     <input type="text" name="name" required>
     <label>Phone:</label>
     <input type="text" name="phone" required>
+    {% if session.get('admin') %}
     <button type="submit">Add Member</button>
+    {% endif %}
 </form>
 
 <table border="1" style="margin-top:20px;">
-    <tr><th>Name</th><th>Phone</th><th>Action</th></tr>
+    <tr><th>Name</th><th>Phone</th></tr>
     {% for member in members %}
     <tr>
         <td>{{ member['name'] }}</td>
         <td>{{ member['phone'] }}</td>
         <td>
+	{% if session.get('admin') %}
             <form method="POST" action="/delete_member/{{ member['id'] }}" onsubmit="return confirm('Are you sure?');">
                 <button type="submit">Delete</button>
             </form>
+	{% endif %}
         </td>
     </tr>
     {% endfor %}

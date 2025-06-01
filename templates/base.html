@@ -11,7 +11,12 @@
         <a href="/">Home</a> |
 	<a href="/members">Members</a> |
         <a href="/about">About</a> |
-	<a href="/contact">Contact</a>
+	<a href="/contact">Contact</a> |
+	{% if session.get('admin') %}
+        <a href="/logout">Logout</a>
+	{% else %}
+	    <a href="/login">Admin Login</a>
+	{% endif %}
     </nav>
 
     <hr>
