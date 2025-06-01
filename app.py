@@ -44,6 +44,15 @@ def members():
     conn.close()
     return render_template("members.html", members=members)
 
+@app.route("/delete_member/<int:member_id>", methods=["POST"])
+def delete_member(member_id):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM members WHERE id = ?", (member_id,))
+    conn.commit()
+    conn.close()
+    return redirect("/members")
+
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -55,6 +64,7 @@ def about():
 @app.route("/contact")
 def contact():
     return render_template("contact.html")
+
 
 if __name__ == "__main__":
     init_db()

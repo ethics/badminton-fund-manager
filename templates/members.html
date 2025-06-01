@@ -1,4 +1,4 @@
-i{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Members - Badminton Fund{% endblock %}
 
@@ -14,13 +14,17 @@ i{% extends "base.html" %}
 </form>
 
 <table border="1" style="margin-top:20px;">
-    <tr><th>Name</th><th>Phone</th></tr>
+    <tr><th>Name</th><th>Phone</th><th>Action</th></tr>
     {% for member in members %}
     <tr>
         <td>{{ member['name'] }}</td>
         <td>{{ member['phone'] }}</td>
+        <td>
+            <form method="POST" action="/delete_member/{{ member['id'] }}" onsubmit="return confirm('Are you sure?');">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
     </tr>
     {% endfor %}
 </table>
 {% endblock %}
-
