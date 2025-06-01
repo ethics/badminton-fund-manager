@@ -152,14 +152,14 @@ def payments():
     total_income = conn.execute("SELECT SUM(amount) FROM payments WHERE strftime('%Y-%m', date) = ?", (current_month,)).fetchone()[0] or 0
     total_expenses = conn.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m', date) = ?", (current_month,)).fetchone()[0] or 0
 
-    # Auto fetch carry forward from previous month
+    # Auto fetch carry forward from previous month and auto-insert if not exists
     carried = conn.execute("SELECT * FROM carry_forward WHERE month = ?", (current_month,)).fetchone()
     if not carried:
         prev_cf = conn.execute("SELECT amount FROM carry_forward WHERE month = ?", (prev_month,)).fetchone()
         prev_amount = prev_cf["amount"] if prev_cf else 0
-        conn.execute("INSERT INTO carry_forward (month, amount) VALUES (?, ?)", (current_month, prev_amount))
-        conn.commit()
         carried_amount = prev_amount
+        conn.execute("INSERT INTO carry_forward (month, amount) VALUES (?, ?)", (current_month, carried_amount))
+        conn.commit()
         carried_id = conn.execute("SELECT id FROM carry_forward WHERE month = ?", (current_month,)).fetchone()["id"]
     else:
         carried_amount = carried["amount"]
@@ -167,12 +167,20 @@ def payments():
 
     final_balance = total_income + carried_amount - total_expenses
 
+    # Auto-update next month carry forward
+    next_month = (datetime.strptime(current_month + "-01", "%Y-%m-%d") + timedelta(days=31)).replace(day=1).strftime("%Y-%m")
+    next_carried = conn.execute("SELECT * FROM carry_forward WHERE month = ?", (next_month,)).fetchone()
+    if not next_carried:
+        conn.execute("INSERT INTO carry_forward (month, amount) VALUES (?, ?)", (next_month, final_balance))
+    else:
+        conn.execute("UPDATE carry_forward SET amount = ? WHERE month = ?", (final_balance, next_month))
+    conn.commit()
+
     conn.close()
 
     return render_template("payments.html", members=members, payments=payments, expenses=expenses,
                            total_income=total_income, total_expenses=total_expenses, carried_amount=carried_amount,
                            final_balance=final_balance, current_month=current_month, carried_id=carried_id)
-
 
 # Edit payment with row_factory handled in get_db_connection()
 @app.route("/edit_payment/<int:id>", methods=["GET", "POST"])
