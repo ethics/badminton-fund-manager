@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Subscription Payments</h2>
+
+<form method="POST">
+    <label>Member:</label>
+    <select name="member_id" required>
+        {% for member in members %}
+        <option value="{{ member['id'] }}">{{ member['name'] }}</option>
+        {% endfor %}
+    </select>
+    <label>Amount (₹):</label>
+    <input type="number" name="amount" required>
+    <label>Date:</label>
+    <input type="date" name="date" required>
+    <button type="submit">Add Payment</button>
+</form>
+
+<table border="1" style="margin-top: 20px;">
+    <tr><th>Member</th><th>Amount</th><th>Date</th></tr>
+    {% for p in payments %}
+    <tr>
+        <td>{{ p['name'] }}</td>
+        <td>{{ p['amount'] }}</td>
+        <td>{{ p['date'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
+

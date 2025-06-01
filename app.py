@@ -21,6 +21,17 @@ def init_db():
             )
         ''')
 
+        # Payments table
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS payments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                member_id INTEGER,
+                amount INTEGER,
+                date TEXT,
+                FOREIGN KEY (member_id) REFERENCES members(id)
+            )
+        ''')
+
         conn.commit()
         conn.close()
         print("✅ Database and tables created.")
@@ -72,6 +83,32 @@ def delete_member(member_id):
     conn.commit()
     conn.close()
     return redirect("/members")
+
+@app.route("/payments", methods=["GET", "POST"])
+def payments():
+    if not session.get("admin"):
+        return "Unauthorized", 403
+    conn = get_db_connection()
+    if request.method == "POST":
+        member_id = request.form["member_id"]
+        amount = request.form["amount"]
+        date = request.form["date"]
+        conn.execute("INSERT INTO payments (member_id, amount, date) VALUES (?, ?, ?)",
+                     (member_id, amount, date))
+        conn.commit()
+
+    # Fetch all members for dropdown
+    members = conn.execute("SELECT * FROM members").fetchall()
+
+    # Join payments with member names
+    payments = conn.execute('''
+        SELECT m.name, p.amount, p.date
+        FROM payments p
+        JOIN members m ON p.member_id = m.id
+        ORDER BY p.date DESC
+    ''').fetchall()
+    conn.close()
+    return render_template("payments.html", members=members, payments=payments)
 
 
 @app.route("/")
