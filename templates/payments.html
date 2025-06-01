@@ -1,30 +1,64 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Subscription Payments</h2>
 
+<h2>Monthly Fund Management</h2>
+
+<!-- Summary -->
+<p><strong>Carry-forward Balance ({{ current_month }}):</strong> ₹{{ carried_amount }}</p>
+<p><strong>Total Collected:</strong> ₹{{ total_income }}</p>
+<p><strong>Total Expenses:</strong> ₹{{ total_expenses }}</p>
+<p><strong>Final Balance:</strong> ₹{{ final_balance }}</p>
+
+<!-- Payment Entry -->
+<h3>Add Payment</h3>
 <form method="POST">
-    <label>Member:</label>
+    <input type="hidden" name="form_type" value="payment">
     <select name="member_id" required>
         {% for member in members %}
         <option value="{{ member['id'] }}">{{ member['name'] }}</option>
         {% endfor %}
     </select>
-    <label>Amount (₹):</label>
-    <input type="number" name="amount" required>
-    <label>Date:</label>
+    <input type="number" name="amount" required placeholder="Amount ₹">
     <input type="date" name="date" required>
     <button type="submit">Add Payment</button>
 </form>
 
-<table border="1" style="margin-top: 20px;">
-    <tr><th>Member</th><th>Amount</th><th>Date</th></tr>
-    {% for p in payments %}
-    <tr>
-        <td>{{ p['name'] }}</td>
-        <td>{{ p['amount'] }}</td>
-        <td>{{ p['date'] }}</td>
-    </tr>
-    {% endfor %}
+<!-- Expense Entry -->
+<h3>Add Expense</h3>
+<form method="POST">
+    <input type="hidden" name="form_type" value="expense">
+    <input type="text" name="description" placeholder="Description" required>
+    <input type="number" name="amount" required>
+    <input type="date" name="date" required>
+    <button type="submit">Add Expense</button>
+</form>
+
+<!-- Carry Forward -->
+<h3>Set Carry-Forward Amount</h3>
+<form method="POST">
+    <input type="hidden" name="form_type" value="carry_forward">
+    <input type="month" name="month" value="{{ current_month }}" required>
+    <input type="number" name="amount" required>
+    <button type="submit">Set Carry Forward</button>
+</form>
+
+<!-- Payments Table -->
+<h3>All Payments</h3>
+<table border="1">
+<tr><th>Member</th><th>Amount</th><th>Date</th></tr>
+{% for p in payments %}
+<tr><td>{{ p['name'] }}</td><td>{{ p['amount'] }}</td><td>{{ p['date'] }}</td></tr>
+{% endfor %}
 </table>
+
+<!-- Expenses Table -->
+<h3>All Expenses</h3>
+<table border="1">
+<tr><th>Description</th><th>Amount</th><th>Date</th></tr>
+{% for e in expenses %}
+<tr><td>{{ e['description'] }}</td><td>{{ e['amount'] }}</td><td>{{ e['date'] }}</td></tr>
+{% endfor %}
+</table>
+
 {% endblock %}
 

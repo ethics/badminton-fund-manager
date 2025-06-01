@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 import sqlite3, os
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -31,6 +32,25 @@ def init_db():
                 FOREIGN KEY (member_id) REFERENCES members(id)
             )
         ''')
+
+        # Expenses Table
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS expenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                description TEXT NOT NULL,
+                amount INTEGER NOT NULL,
+                date TEXT NOT NULL
+            )
+        ''')
+
+        # Carry Forward Table (one entry per month)
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS carry_forward (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            month TEXT UNIQUE,
+            amount INTEGER NOT NULL
+            )
+            ''')
 
         conn.commit()
         conn.close()
@@ -88,14 +108,35 @@ def delete_member(member_id):
 def payments():
     if not session.get("admin"):
         return "Unauthorized", 403
+
     conn = get_db_connection()
+
     if request.method == "POST":
-        member_id = request.form["member_id"]
-        amount = request.form["amount"]
-        date = request.form["date"]
-        conn.execute("INSERT INTO payments (member_id, amount, date) VALUES (?, ?, ?)",
-                     (member_id, amount, date))
+        form_type = request.form.get("form_type")
+
+        if form_type == "payment":
+            member_id = request.form["member_id"]
+            amount = request.form["amount"]
+            date = request.form["date"]
+            conn.execute("INSERT INTO payments (member_id, amount, date) VALUES (?, ?, ?)",
+                         (member_id, amount, date))
+
+        elif form_type == "expense":
+            desc = request.form["description"]
+            amount = request.form["amount"]
+            date = request.form["date"]
+            conn.execute("INSERT INTO expenses (description, amount, date) VALUES (?, ?, ?)",
+                         (desc, amount, date))
+
+        elif form_type == "carry_forward":
+            month = request.form["month"]
+            amount = request.form["amount"]
+            conn.execute("INSERT OR REPLACE INTO carry_forward (month, amount) VALUES (?, ?)", (month, amount))
+
         conn.commit()
+
+    today = datetime.now()
+    current_month = today.strftime("%Y-%m")
 
     # Fetch all members for dropdown
     members = conn.execute("SELECT * FROM members").fetchall()
@@ -107,8 +148,21 @@ def payments():
         JOIN members m ON p.member_id = m.id
         ORDER BY p.date DESC
     ''').fetchall()
+
+    expenses = conn.execute("SELECT * FROM expenses ORDER BY date DESC").fetchall()
+
+    total_income = conn.execute("SELECT SUM(amount) FROM payments").fetchone()[0] or 0
+    total_expenses = conn.execute("SELECT SUM(amount) FROM expenses").fetchone()[0] or 0
+    carried = conn.execute("SELECT amount FROM carry_forward WHERE month = ?", (current_month,)).fetchone()
+    carried_amount = carried[0] if carried else 0
+    final_balance = total_income + carried_amount - total_expenses
+
     conn.close()
-    return render_template("payments.html", members=members, payments=payments)
+
+    return render_template("payments.html", members=members, payments=payments,
+                           expenses=expenses, total_income=total_income,
+                           carried_amount=carried_amount, total_expenses=total_expenses,
+                           final_balance=final_balance, current_month=current_month)
 
 
 @app.route("/")
