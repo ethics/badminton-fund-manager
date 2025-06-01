@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Carry Forward</title>
+</head>
+<body>
+    <h2>Edit Carry Forward Amount</h2>
+    <form method="POST">
+        <label>Month:</label>
+        <input type="month" name="month" value="{{ carry_forward['month'] }}" required><br><br>
+
+        <label>Amount:</label>
+        <input type="number" name="amount" value="{{ carry_forward['amount'] }}" required><br><br>
+
+        <input type="submit" value="Save">
+        <a href="{{ url_for('payments') }}">Cancel</a>
+    </form>
+</body>
+</html>
+

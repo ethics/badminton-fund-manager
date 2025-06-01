@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Payment</title>
+</head>
+<body>
+    <h2>Edit Payment</h2>
+    <form method="POST">
+        <label>Amount:</label>
+        <input type="number" name="amount" value="{{ payment['amount'] }}" required><br><br>
+
+        <label>Date:</label>
+        <input type="date" name="date" value="{{ payment['date'] }}" required><br><br>
+
+        <input type="submit" value="Save">
+        <a href="{{ url_for('payments') }}">Cancel</a>
+    </form>
+</body>
+</html>
+

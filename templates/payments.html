@@ -9,6 +9,18 @@
 <p><strong>Total Expenses:</strong> ₹{{ total_expenses }}</p>
 <p><strong>Final Balance:</strong> ₹{{ final_balance }}</p>
 
+<!-- Month Filter Form -->
+<form method="get" action="/payments" style="margin-bottom: 20px;">
+    <label for="month">Select Month:</label>
+    <input type="month" name="month" value="{{ current_month }}">
+    <button type="submit">Filter</button>
+</form>
+
+<a href="/export/{{ current_month }}/excel">Download Excel</a> |
+<a href="/export/{{ current_month }}/pdf">Download PDF</a> | 
+<a href="/export_report_txt/{{ current_month }}" target="_blank">Export Monthly Report (Text)</a>
+
+
 <!-- Payment Entry -->
 <h3>Add Payment</h3>
 <form method="POST">
@@ -42,21 +54,52 @@
     <button type="submit">Set Carry Forward</button>
 </form>
 
+<h3>Carry Forward</h3>
+<table border="1">
+  <tr>
+    <th>Month</th>
+    <th>Amount</th>
+    <th>Action</th>
+  </tr>
+  {% if carried_amount %}
+  <tr>
+    <td>{{ current_month }}</td>
+    <td>{{ carried_amount }}</td>
+    <td>
+      <a href="{{ url_for('edit_carry_forward', id=carried_id) }}">Edit</a>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="3">No carry forward for this month</td></tr>
+  {% endif %}
+</table>
+
+
 <!-- Payments Table -->
 <h3>All Payments</h3>
 <table border="1">
-<tr><th>Member</th><th>Amount</th><th>Date</th></tr>
+<tr>
+  <th>Member</th>
+  <th>Amount</th>
+  <th>Date</th>
+  <th>Action</th>
+</tr>
 {% for p in payments %}
-<tr><td>{{ p['name'] }}</td><td>{{ p['amount'] }}</td><td>{{ p['date'] }}</td></tr>
+<tr>
+  <td>{{ p['name'] }}</td>
+  <td>{{ p['amount'] }}</td>
+  <td>{{ p['date'] }}</td>
+  <td><a href="{{ url_for('edit_payment', id=p['id']) }}">Edit</a></td>
+</tr>
 {% endfor %}
 </table>
 
 <!-- Expenses Table -->
 <h3>All Expenses</h3>
 <table border="1">
-<tr><th>Description</th><th>Amount</th><th>Date</th></tr>
+	<tr><th>Description</th><th>Amount</th><th>Date</th><th>Action</th></tr>
 {% for e in expenses %}
-<tr><td>{{ e['description'] }}</td><td>{{ e['amount'] }}</td><td>{{ e['date'] }}</td></tr>
+<tr><td>{{ e['description'] }}</td><td>{{ e['amount'] }}</td><td>{{ e['date'] }}</td><td><a href="{{ url_for('edit_expense', id=e['id']) }}">Edit</a></td></tr>
 {% endfor %}
 </table>
 
