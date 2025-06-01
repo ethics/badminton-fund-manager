@@ -1,0 +1,26 @@
+i{% extends "base.html" %}
+
+{% block title %}Members - Badminton Fund{% endblock %}
+
+{% block content %}
+<h2>Group Members</h2>
+
+<form method="POST">
+    <label>Name:</label>
+    <input type="text" name="name" required>
+    <label>Phone:</label>
+    <input type="text" name="phone" required>
+    <button type="submit">Add Member</button>
+</form>
+
+<table border="1" style="margin-top:20px;">
+    <tr><th>Name</th><th>Phone</th></tr>
+    {% for member in members %}
+    <tr>
+        <td>{{ member['name'] }}</td>
+        <td>{{ member['phone'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
+
